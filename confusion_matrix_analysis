@@ -1,0 +1,45 @@
+#Función para imprimir análisis de matriz de confusion
+
+def cfm_analisis(array_X_test,array_y_test,modelo_asignado,nombre=""):
+    
+    #Primer argumento: arreglo de resultados reales (y) asignados a testeo
+    #Segundo argumento: Arreglo de para realizar la predicción de testel (X)
+    #Ambos deben tener idéntica longitud.
+    #Tercer argumento: Nombre del modelo a usar, ya entrenado.
+    #Cuarto argumento (opcional): string que se añade al título. Netamente estético e informativo.
+    
+    model_name=modelo_asignado
+    
+    array_prediction=model_name.predict(array_X_test)
+    
+    precision_total = accuracy_score(array_y_test, array_prediction)*100 #Cálculo de precisión 
+    
+    valores_unicos = np.unique(np.array(array_y_test) ) 
+
+    array_cf = confusion_matrix(array_y_test, array_prediction) #Creo la matriz de confusión
+    df_confusion = pd.DataFrame(array_cf, index = valores_unicos, columns=valores_unicos) #La convierto en un DF
+    df_confusion['TOTAL'] = df_confusion.sum(axis=1) #Añado la columna que suma los totales
+    df_confusion.loc['TOTAL']= df_confusion.sum()
+
+    plt.figure(figsize=(16,7))
+    df_percentages = df_confusion.div(df_confusion.TOTAL, axis=0) #Calculo porcentajes de acierto
+    df_percentages.TOTAL = 0
+    ax = sns.heatmap(data=df_percentages , annot=df_confusion , cmap='Blues', fmt="d", #Plotea el mapa de calor
+                     cbar_kws={'label': 'percentages'})  #Usa los porcentajes para establecer el color
+
+    ax.set_title(f'Matriz de confusión: {nombre}\n',size=20) 
+    ax.set_xlabel('\nValores predichos',size=18)
+    ax.set_ylabel('Valores reales', size=18)
+
+    print("***RESULTADOS*** \n") #Crea resultados por 
+    print(f"Precisión total: [ {precision_total:.2f} % ]\n")
+    print("Precisión por rango:\n")
+    for j in range(0,len(array_cf)):
+        s=0
+        for i in range(0,len(array_cf)):
+            s+=array_cf[j][i]
+            if i==j:
+                correcto=array_cf[j][i]
+        print("   ►",valores_unicos[j],": Datos:", s, " - Correctos:", correcto, f' - Precisión:  {((100*correcto)/s):.2f} %')
+        
+    plt.show()
