@@ -1,0 +1,71 @@
+#Función de selección de base de datos y modelo de aprendizaje
+import tkinter as tk
+from tkinter import ttk
+
+def run_selected_code():
+    selected_code1 = code_selection1.get()
+    selected_code2 = code_selection2.get()
+
+    if selected_code1 == "BD completa":
+        Xa=df[["BANDA 1","BANDA 2","BANDA 3","BANDA 4","BANDA 5","BANDA 6","BANDA 7","BANDA 10"]]
+        ya=df[["Deep [m]"]]
+        X_train, X_test, y_train, y_test = train_test_split(Xa, ya, test_size=0.2, random_state=42)
+        print("\nBase de datos usada: Completa")
+    elif selected_code1 == "BD completa-B01 a B04":
+        Xa=df[["BANDA 1","BANDA 2","BANDA 3","BANDA 4"]]
+        ya=df[["Deep [m]"]]
+        X_train, X_test, y_train, y_test = train_test_split(Xa, ya, test_size=0.2, random_state=42)
+        print("\nBase de datos usada: Completa - Bandas 1 a 4")
+    elif selected_code1 == "BD normalizada":
+        X_train=(X_train-X_train.min())/(X_train.max()-X_train.min())
+        X_test=(X_test-X_test.min())/(X_test.max()-X_test.min())
+        print("\nBase de datos usada: Normalizada")
+    elif selected_code1 == "BD balanceada":
+        Xa=df_balanceado[["BANDA 1","BANDA 2","BANDA 3","BANDA 4","BANDA 5","BANDA 6","BANDA 7","BANDA 10"]]
+        ya=df_balanceado[["Deep [m]"]]
+        X_train, X_test, y_train, y_test = train_test_split(Xa, ya, test_size=0.2, random_state=42)
+        print("\nBase de datos usada: Balanceada")
+
+    if selected_code2 == "Random Forest":
+        modelo = RandomForestClassifier(max_depth= None,criterion= 'gini', n_estimators=200, max_features="log2",class_weight="balanced") 
+        print("Modelo usado: Random Forest")
+    elif selected_code2 == "KNN":
+        modelo = KNeighborsClassifier(n_neighbors=10)
+        print("Modelo usado: KNN")
+    elif selected_code2 == "MPL":
+        modelo = MLPClassifier(alpha=1, max_iter=1000)
+        print("Modelo usado: MPL")
+    elif selected_code2 == "QDA":
+        modelo = QuadraticDiscriminantAnalysis()
+        print("Modelo usado: QDA")
+    elif selected_code2 == "Gaussian Naive Bayes":
+        modelo = GaussianNB()
+        print("Modelo usado: Gaussian Naive Bayes")
+    elif selected_code2 == "Categorical Naive Bayes":
+        modelo = CategoricalNB()
+        print("Modelo usado: Categorical Naive Bayes")
+
+    modelo.fit(X_train, y_train.values.ravel())
+    cfm_analisis(X_test,y_test,modelo,f"{selected_code1} - {selected_code2}")
+
+# Create the main application window
+root = tk.Tk()
+root.title("Selector de modelo")
+root.geometry("300x200")  # Set the dimensions of the window
+
+# Create the first dropdown list
+code_selection1 = ttk.Combobox(root, values=["BD completa", "BD completa-B01 a B04","BD normalizada", "BD balanceada"])
+code_selection1.set("Seleccionar BD")
+code_selection1.pack(pady=10)
+
+# Create the second dropdown list
+code_selection2 = ttk.Combobox(root, values=["Random Forest", "KNN","MPL","QDA","Gaussian Naive Bayes", "Categorical Naive Bayes"])
+code_selection2.set("Seleccionar modelo")
+code_selection2.pack(pady=10)
+
+# Create a button to run the selected code
+run_button = tk.Button(root, text="Ejecutar", command=run_selected_code)
+run_button.pack(pady=10)
+
+# Start the GUI event loop
+root.mainloop()
